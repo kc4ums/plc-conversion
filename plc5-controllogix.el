@@ -9,6 +9,7 @@
   (while (< index 4493) ;; Number of records in above file
     
     (set-buffer "PLC_K_EMACS_2COL.csv")
+    (setq N19-found 0)
     
     (setq plc5_word (buffer-substring (point) (- (search-forward ",") 1) ))
     (setq symbol_start (point))
@@ -43,12 +44,20 @@
     ;; Translate & Replace Langboard N19 files for motors to the Motor.Control.0 user defined type 
     (if (string-match "^N19:[[:digit:]]+/[[:digit:]]+" plc5_word)
 	(progn
+	  (setq N19-found 1)
 	  (setq file (substring plc5_word 0 (string-match ":" plc5_word)))
       	  (setq word (substring plc5_word (+ 1 (string-match ":" plc5_word)) (string-match "/" plc5_word)))
 	  (setq bit (substring plc5_word (+ 1 (string-match "/" plc5_word)) (string-match "\n" plc5_word)))
 	  (setq plc5_symbol (concat (concat (substring plc5_symbol 0 (string-match "_" plc5_symbol)) ".Control.") bit))
 	  (plc5-replace plc5_word plc5_symbol)))
+
+    ;; Translate & Replace  N: Timer files Skip if N19 found 
+    (if (and (string-match "^N[[:digit:]]+:[[:digit:]]+" plc5_word) (eq N19-found 0))
+	(plc5-replace plc5_word plc5_symbol)
+      )
+
     
+   
     ;; Translate & Replace  T: Timer files 
     (if (string-match "^T[[:digit:]]+:[[:digit:]]+" plc5_word)
 	(plc5-replace plc5_word plc5_symbol)
